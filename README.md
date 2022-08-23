@@ -69,7 +69,7 @@ IPGPayment ipgPayment = new IPGPayment(
 );
 ```
 
-<b>4.</b> Call `startPayment` method from `ipgClient` to perform the payment.
+<b>4.</b> Call `startPayment` method from `PAYableIPGClient` to perform the payment.
 
 ```java
 ipgClient.startPayment(activity, ipgPayment, new IPGListener() {
