@@ -40,33 +40,21 @@ class PAYableIPGClient @JvmOverloads constructor(
     }
 
     @JvmOverloads
-    fun startPayment(activity: FragmentActivity, ipgPayment: IPGPayment, ipgListener: IPGListener, dialog: Boolean = true) {
+    fun startPayment(activity: FragmentActivity, ipgPayment: IPGPayment, ipgListener: IPGListener) {
 
         this.ipgPayment = ipgPayment
         this.ipgListener = ipgListener
 
-        if (dialog) {
-            IPGFragment(this).show(activity.supportFragmentManager, IPGFragment::class.java.simpleName)
-        } else {
-            val intent = Intent(activity, IPGActionView::class.java)
-            intent.putExtra(PAYableIPGClient::class.java.simpleName, this)
-            activity.startActivityForResult(intent, requestCode)
-        }
+        IPGFragment(this).show(activity.supportFragmentManager, IPGFragment::class.java.simpleName)
     }
 
     @JvmOverloads
-    fun startPayment(activity: FragmentActivity, uid: String, ipgListener: IPGListener, dialog: Boolean = true) {
+    fun startPayment(activity: FragmentActivity, uid: String, ipgListener: IPGListener) {
 
         this.uid = uid
         this.ipgListener = ipgListener
 
-        if (dialog) {
-            IPGFragment(this).show(activity.supportFragmentManager, IPGFragment::class.java.simpleName)
-        } else {
-            val intent = Intent(activity, IPGActionView::class.java)
-            intent.putExtra(PAYableIPGClient::class.java.simpleName, this)
-            activity.startActivityForResult(intent, requestCode)
-        }
+        IPGFragment(this).show(activity.supportFragmentManager, IPGFragment::class.java.simpleName)
     }
 
     internal fun generatePaymentURL(ipgPayment: IPGPayment? = null, uid: String? = null): String? {
@@ -78,47 +66,70 @@ class PAYableIPGClient @JvmOverloads constructor(
 
         if (ipgPayment != null) {
 
-            return "${getServerUrl()}/${environment.name.lowercase()}/" +
+            val queryList = arrayListOf<String>()
 
-                    "?merchantKey=$merchantKey" +
-                    "&merchantToken=$merchantToken" +
-                    "&integrationType=MSDK" +
-                    "&integrationVersion=1.0.1" +
-                    "&integrationEnv=$environment" +
+            queryList.add("${getServerUrl()}/${environment.name.lowercase()}/")
 
-                    "&refererUrl=$refererUrl" +
-                    "&logoUrl=$logoUrl" +
+            queryList.add("?merchantKey=$merchantKey")
+            queryList.add("&merchantToken=$merchantToken")
+            queryList.add("&integrationType=MSDK")
+            queryList.add("&integrationVersion=1.0.1")
+            queryList.add("&integrationEnv=$environment")
 
-                    (if (ipgPayment.notificationUrl != null) "&notificationUrl=${ipgPayment.notificationUrl}" else "") +
-                    "&returnUrl=${getServerUrl()}/${environment.name.lowercase()}/status-view" +
+            queryList.add("&refererUrl=$refererUrl")
+            queryList.add("&logoUrl=$logoUrl")
+            queryList.add("&returnUrl=${getServerUrl()}/${environment.name.lowercase()}/status-view")
 
-                    "&buttonType=${ipgPayment.uiConfig.buttonType}" +
-                    "&statusViewDuration=${ipgPayment.uiConfig.statusViewDuration}" +
+            queryList.add("&amount=${ipgPayment.amount}")
+            queryList.add("&currencyCode=${ipgPayment.currencyCode}")
+            queryList.add("&orderDescription=${Uri.encode(ipgPayment.orderDescription)}")
 
-                    "&amount=${ipgPayment.amount}" +
-                    "&currencyCode=${ipgPayment.currencyCode}" +
-                    "&orderDescription=${Uri.encode(ipgPayment.orderDescription)}" +
+            queryList.add("&customerFirstName=${ipgPayment.customerFirstName}")
+            queryList.add("&customerLastName=${ipgPayment.customerLastName}")
+            queryList.add("&customerEmail=${ipgPayment.customerEmail}")
+            queryList.add("&customerMobilePhone=${ipgPayment.customerMobilePhone}")
+            queryList.add("&billingAddressStreet=${ipgPayment.billingAddressCity}")
+            queryList.add("&billingAddressCity=${ipgPayment.billingAddressCity}")
+            queryList.add("&billingAddressCountry=${ipgPayment.billingAddressCountry}")
+            queryList.add("&billingAddressPostcodeZip=${ipgPayment.billingAddressPostcodeZip}")
 
-                    "&customerFirstName=${ipgPayment.customerFirstName}" +
-                    "&customerLastName=${ipgPayment.customerLastName}" +
-                    "&customerEmail=${ipgPayment.customerEmail}" +
-                    "&customerMobilePhone=${ipgPayment.customerMobilePhone}" +
+            queryList.add("&buttonType=${ipgPayment.uiConfig.buttonType}")
+            queryList.add("&statusViewDuration=${ipgPayment.uiConfig.statusViewDuration}")
 
-                    "&billingAddressStreet=${ipgPayment.billingAddressCity}" +
-                    "&billingAddressCity=${ipgPayment.billingAddressCity}" +
-                    "&billingAddressCountry=${ipgPayment.billingAddressCountry}" +
-                    "&billingAddressPostcodeZip=${ipgPayment.billingAddressPostcodeZip}" +
-                    "&billingAddressStateProvince=${ipgPayment.billingAddressStateProvince}" +
+            if (ipgPayment.billingAddressStateProvince != null)
+                queryList.add("&billingAddressStateProvince=${ipgPayment.billingAddressStateProvince}")
 
-                    "&shippingContactFirstName=${ipgPayment.shippingContactFirstName}" +
-                    "&shippingContactLastName=${ipgPayment.shippingContactLastName}" +
-                    "&shippingContactEmail=${ipgPayment.shippingContactEmail}" +
-                    "&shippingContactMobilePhone=${ipgPayment.shippingContactMobilePhone}" +
-                    "&shippingAddressStreet=${ipgPayment.shippingAddressStreet}" +
-                    "&shippingAddressCity=${ipgPayment.shippingAddressCity}" +
-                    "&shippingAddressCountry=${ipgPayment.shippingAddressCountry}" +
-                    "&shippingAddressPostcodeZip=${ipgPayment.shippingAddressPostcodeZip}" +
-                    "&shippingAddressStateProvince=${ipgPayment.shippingAddressStateProvince}"
+            if (ipgPayment.shippingContactFirstName != null)
+                queryList.add("&shippingContactFirstName=${ipgPayment.shippingContactFirstName}")
+
+            if (ipgPayment.shippingContactLastName != null)
+                queryList.add("&shippingContactLastName=${ipgPayment.shippingContactLastName}")
+
+            if (ipgPayment.shippingContactEmail != null)
+                queryList.add("&shippingContactEmail=${ipgPayment.shippingContactEmail}")
+
+            if (ipgPayment.shippingContactMobilePhone != null)
+                queryList.add("&shippingContactMobilePhone=${ipgPayment.shippingContactMobilePhone}")
+
+            if (ipgPayment.shippingAddressStreet != null)
+                queryList.add("&shippingAddressStreet=${ipgPayment.shippingAddressStreet}")
+
+            if (ipgPayment.shippingAddressCity != null)
+                queryList.add("&shippingAddressCity=${ipgPayment.shippingAddressCity}")
+
+            if (ipgPayment.shippingAddressCountry != null)
+                queryList.add("&shippingAddressCountry=${ipgPayment.shippingAddressCountry}")
+
+            if (ipgPayment.shippingAddressPostcodeZip != null)
+                queryList.add("&shippingAddressPostcodeZip=${ipgPayment.shippingAddressPostcodeZip}")
+
+            if (ipgPayment.shippingAddressStateProvince != null)
+                queryList.add("&shippingAddressStateProvince=${ipgPayment.shippingAddressStateProvince}")
+
+            if (ipgPayment.notificationUrl != null)
+                queryList.add("&notificationUrl=${ipgPayment.notificationUrl}")
+
+            return queryList.joinToString("")
         }
 
         return null

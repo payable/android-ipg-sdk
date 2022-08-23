@@ -41,7 +41,6 @@ class MainActivity : AppCompatActivity() {
             if (payableIPGClient != null && uid != null && resultIndicator != null) {
                 payableIPGClient!!.getStatus(this, uid = uid!!, resultIndicator = resultIndicator!!) {
                     updateUI("onStatus")
-                    Toast.makeText(applicationContext, "onStatus: $it", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -73,28 +72,23 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPaymentPageLoaded(uid: String) {
                 updateUI("onPaymentPageLoaded")
-                Toast.makeText(applicationContext, "onPaymentPageLoaded: $uid", Toast.LENGTH_LONG).show()
                 this@MainActivity.uid = uid
             }
 
             override fun onPaymentStarted() {
                 updateUI("onPaymentStarted")
-                Toast.makeText(applicationContext, "onPaymentStarted", Toast.LENGTH_LONG).show()
             }
 
             override fun onPaymentCancelled() {
                 updateUI("onPaymentCancelled")
-                Toast.makeText(applicationContext, "onPaymentCancelled", Toast.LENGTH_LONG).show()
             }
 
             override fun onPaymentError(data: String) {
                 updateUI("onPaymentError: $data")
-                Toast.makeText(applicationContext, "onPaymentError: $data", Toast.LENGTH_LONG).show()
             }
 
             override fun onPaymentCompleted(data: String) {
                 updateUI("onPaymentCompleted: $data")
-                Toast.makeText(applicationContext, "onPaymentCompleted: $data", Toast.LENGTH_LONG).show()
                 this@MainActivity.resultIndicator = JSONObject(data).getString("resultIndicator")
             }
         }
@@ -137,5 +131,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(message: String) {
         binding.textViewResponse.text = "$message\n${binding.textViewResponse.text}"
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

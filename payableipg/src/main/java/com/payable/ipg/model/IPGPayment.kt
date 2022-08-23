@@ -17,18 +17,19 @@ data class IPGPayment @JvmOverloads constructor(
     val billingAddressCity: String,
     val billingAddressCountry: String,
     val billingAddressPostcodeZip: String,
-    val billingAddressStateProvince: String,
+    
+    val billingAddressStateProvince: String? = null,
 
-    val shippingContactFirstName: String,
-    val shippingContactLastName: String,
-    val shippingContactEmail: String,
-    val shippingContactMobilePhone: String,
+    val shippingContactFirstName: String? = null,
+    val shippingContactLastName: String? = null,
+    val shippingContactEmail: String? = null,
+    val shippingContactMobilePhone: String? = null,
 
-    val shippingAddressStreet: String,
-    val shippingAddressCity: String,
-    val shippingAddressCountry: String,
-    val shippingAddressPostcodeZip: String,
-    val shippingAddressStateProvince: String,
+    val shippingAddressStreet: String? = null,
+    val shippingAddressCity: String? = null,
+    val shippingAddressCountry: String? = null,
+    val shippingAddressPostcodeZip: String? = null,
+    val shippingAddressStateProvince: String? = null,
 
     val notificationUrl: String? = null,
     val uiConfig: IPGUIConfig = IPGUIConfig()
