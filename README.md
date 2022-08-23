@@ -196,6 +196,49 @@ public class MainActivityJava extends AppCompatActivity {
 
 ### Advanced Usage
 
+<b>1.</b> Pay with session `uid` without `merchantKey` and `merchantToken`.
+
+```java
+ipgClient.startPayment(activity, uid, new IPGListener() {
+    
+    @Override
+    public void onPaymentPageLoaded(String uid) {
+
+    }
+
+    @Override
+    public void onPaymentStarted() {
+
+    }
+
+    @Override
+    public void onPaymentCancelled() {
+
+    }
+
+    @Override
+    public void onPaymentError(String data) {
+
+    }
+
+    @Override
+    public void onPaymentCompleted(String data) {
+
+    }
+});
+```
+
+<b>2.</b> Check the status of the transaction using `uid` and `resultIndicator`.
+
+```java
+ipgClient.getStatus(activity, uid, resultIndicator, new IPGStatusListener() {
+    @Override
+    public void onResponse(String data) {
+        updateUI("onResponse: " + data);
+    }
+});
+```
+
 ### API Documentation
 
 This document contains all the HTTP APIs used in this package.
