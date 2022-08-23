@@ -241,11 +241,15 @@ ipgClient.getStatus(activity, uid, resultIndicator, new IPGStatusListener() {
 });
 ```
 
+<hr/>
+
 ### API Documentation
 
 This document contains all the HTTP APIs used in this package.
 
 [ipg-mobile-api.payable.lk](https://ipg-mobile-api.payable.lk)
+
+<hr/>
 
 ### Demo
 
