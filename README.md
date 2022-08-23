@@ -194,6 +194,8 @@ public class MainActivityJava extends AppCompatActivity {
 }
 ```
 
+<hr/>
+
 ### Advanced Usage
 
 <b>1.</b> Pay with session `uid` without `merchantKey` and `merchantToken`.
