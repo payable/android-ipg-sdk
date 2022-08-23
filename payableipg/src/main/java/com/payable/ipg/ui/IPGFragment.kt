@@ -30,6 +30,9 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
     private lateinit var binding: FragmentIpgBinding
     private var urlBeforeError = ""
 
+    val closeHandler = Handler(Looper.getMainLooper())
+    val closeRun = Runnable { binding.buttonClose.performClick() }
+
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         val dialog = Dialog(requireContext(), R.style.DialogSlideAnim)
@@ -49,7 +52,7 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
         }
 
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_ipg, container, false)
-
+        binding.buttonReload.visibility = View.GONE
 
         binding.buttonClose.setOnClickListener { finishView() }
         binding.buttonReload.setOnClickListener { reloadView() }
@@ -95,10 +98,10 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
         class WebAppInterface {
 
             @JavascriptInterface
-            fun onPaymentPageLoaded() {
+            fun onPaymentPageLoaded(uid: String) {
                 console("onPaymentPageLoaded")
                 Handler(Looper.getMainLooper()).post {
-                    ipgClient.ipgListener?.onPaymentPageLoaded()
+                    ipgClient.ipgListener?.onPaymentPageLoaded(uid)
                 }
             }
 
@@ -126,9 +129,6 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
                 }
             }
 
-            val closeHandler = Handler(Looper.getMainLooper())
-            val closeRun = Runnable { binding.buttonClose.performClick() }
-
             @JavascriptInterface
             fun onPaymentCompleted(data: String) {
                 console("onPaymentCompleted: $data")
@@ -136,12 +136,7 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
 
                     // binding.buttonReload.visibility = View.GONE
                     binding.buttonClose.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_check_24))
-
-                    binding.buttonClose.setOnClickListener {
-                        closeHandler.removeCallbacks(closeRun)
-                        ipgClient.ipgListener?.onPaymentCompleted(data)
-                        finishView(true)
-                    }
+                    binding.buttonClose.setOnClickListener { finishView(JSONObject(data).toString()) }
 
                     ipgClient.ipgPayment?.let {
                         closeHandler.removeCallbacks(closeRun)
@@ -151,9 +146,9 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
             }
         }
 
-        binding.webView.addJavascriptInterface(WebAppInterface(), "Android")
+        binding.webView.addJavascriptInterface(WebAppInterface(), "PAYable")
 
-        val paymentURL = ipgClient.generatePaymentURL()
+        val paymentURL = ipgClient.generatePaymentURL(ipgClient.ipgPayment, ipgClient.uid)
 
         if (paymentURL != null) {
             binding.webView.safeLoadUrl(paymentURL)
@@ -170,11 +165,18 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
         }
     }
 
-    fun finishView(isCompleted: Boolean = false) {
+    fun finishView(data: String? = null) {
+
         // binding.webView.clearCache(true)
-        if (!isCompleted) {
+
+        closeHandler.removeCallbacks(closeRun)
+
+        if (data != null) {
+            ipgClient.ipgListener?.onPaymentCompleted(data)
+        } else {
             ipgClient.ipgListener?.onPaymentCancelled()
         }
+
         dialog?.dismiss()
     }
 

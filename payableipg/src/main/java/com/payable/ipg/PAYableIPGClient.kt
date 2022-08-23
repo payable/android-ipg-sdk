@@ -1,13 +1,21 @@
 package com.payable.ipg
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.fragment.app.FragmentActivity
 import com.payable.ipg.model.IPGListener
 import com.payable.ipg.model.IPGPayment
+import com.payable.ipg.model.IPGStatusListener
 import com.payable.ipg.ui.IPGActionView
 import com.payable.ipg.ui.IPGFragment
 import java.io.Serializable
+import java.util.*
+import com.retrofit.lite.services.APITask
+import org.json.JSONException
+import org.json.JSONObject
+import java.lang.Exception
+
 
 class PAYableIPGClient @JvmOverloads constructor(
     private val merchantKey: String,
@@ -24,14 +32,11 @@ class PAYableIPGClient @JvmOverloads constructor(
 
     val requestCode = 3569
     var ipgPayment: IPGPayment? = null
+    var uid: String? = null
     var ipgListener: IPGListener? = null
 
     private fun getServerUrl(): String {
-        return if (environment == Environment.PRODUCTION) {
-            "https://us-central1-payable-mobile.cloudfunctions.net/ipg"
-        } else {
-            "https://5f3e-112-134-211-41.in.ngrok.io/payable-mobile/us-central1/ipg"
-        }
+        return "https://us-central1-payable-mobile.cloudfunctions.net/ipg"
     }
 
     @JvmOverloads
@@ -49,52 +54,98 @@ class PAYableIPGClient @JvmOverloads constructor(
         }
     }
 
-    internal fun generatePaymentURL(): String? {
-        return this.ipgPayment?.let { generatePaymentURL(it) }
+    @JvmOverloads
+    fun startPayment(activity: FragmentActivity, uid: String, ipgListener: IPGListener, dialog: Boolean = true) {
+
+        this.uid = uid
+        this.ipgListener = ipgListener
+
+        if (dialog) {
+            IPGFragment(this).show(activity.supportFragmentManager, IPGFragment::class.java.simpleName)
+        } else {
+            val intent = Intent(activity, IPGActionView::class.java)
+            intent.putExtra(PAYableIPGClient::class.java.simpleName, this)
+            activity.startActivityForResult(intent, requestCode)
+        }
     }
 
-    private fun generatePaymentURL(ipgPayment: IPGPayment): String {
+    internal fun generatePaymentURL(ipgPayment: IPGPayment? = null, uid: String? = null): String? {
 
-        return "${getServerUrl()}/" +
+        if (uid != null) {
 
-                "?merchantKey=$merchantKey" +
-                "&merchantToken=$merchantToken" +
-                "&integrationType=MSDK" +
-                "&integrationVersion=1.0.1" +
-                "&integrationEnv=$environment" +
+            return "${getServerUrl()}/${environment.name.lowercase()}/?uid=$uid"
+        }
 
-                "&refererUrl=$refererUrl" +
-                "&logoUrl=$logoUrl" +
+        if (ipgPayment != null) {
 
-                (if (ipgPayment.notificationUrl != null) "&notificationUrl=${ipgPayment.notificationUrl}" else "") +
-                "&returnUrl=${getServerUrl()}/status-view" +
+            return "${getServerUrl()}/${environment.name.lowercase()}/" +
 
-                "&buttonType=${ipgPayment.uiConfig.buttonType}" +
-                "&statusViewDuration=${ipgPayment.uiConfig.statusViewDuration}" +
+                    "?merchantKey=$merchantKey" +
+                    "&merchantToken=$merchantToken" +
+                    "&integrationType=MSDK" +
+                    "&integrationVersion=1.0.1" +
+                    "&integrationEnv=$environment" +
 
-                "&amount=${ipgPayment.amount}" +
-                "&currencyCode=${ipgPayment.currencyCode}" +
-                "&orderDescription=${Uri.encode(ipgPayment.orderDescription)}" +
+                    "&refererUrl=$refererUrl" +
+                    "&logoUrl=$logoUrl" +
 
-                "&customerFirstName=${ipgPayment.customerFirstName}" +
-                "&customerLastName=${ipgPayment.customerLastName}" +
-                "&customerEmail=${ipgPayment.customerEmail}" +
-                "&customerMobilePhone=${ipgPayment.customerMobilePhone}" +
+                    (if (ipgPayment.notificationUrl != null) "&notificationUrl=${ipgPayment.notificationUrl}" else "") +
+                    "&returnUrl=${getServerUrl()}/${environment.name.lowercase()}/status-view" +
 
-                "&billingAddressStreet=${ipgPayment.billingAddressCity}" +
-                "&billingAddressCity=${ipgPayment.billingAddressCity}" +
-                "&billingAddressCountry=${ipgPayment.billingAddressCountry}" +
-                "&billingAddressPostcodeZip=${ipgPayment.billingAddressPostcodeZip}" +
-                "&billingAddressStateProvince=${ipgPayment.billingAddressStateProvince}" +
+                    "&buttonType=${ipgPayment.uiConfig.buttonType}" +
+                    "&statusViewDuration=${ipgPayment.uiConfig.statusViewDuration}" +
 
-                "&shippingContactFirstName=${ipgPayment.shippingContactFirstName}" +
-                "&shippingContactLastName=${ipgPayment.shippingContactLastName}" +
-                "&shippingContactEmail=${ipgPayment.shippingContactEmail}" +
-                "&shippingContactMobilePhone=${ipgPayment.shippingContactMobilePhone}" +
-                "&shippingAddressStreet=${ipgPayment.shippingAddressStreet}" +
-                "&shippingAddressCity=${ipgPayment.shippingAddressCity}" +
-                "&shippingAddressCountry=${ipgPayment.shippingAddressCountry}" +
-                "&shippingAddressPostcodeZip=${ipgPayment.shippingAddressPostcodeZip}" +
-                "&shippingAddressStateProvince=${ipgPayment.shippingAddressStateProvince}"
+                    "&amount=${ipgPayment.amount}" +
+                    "&currencyCode=${ipgPayment.currencyCode}" +
+                    "&orderDescription=${Uri.encode(ipgPayment.orderDescription)}" +
+
+                    "&customerFirstName=${ipgPayment.customerFirstName}" +
+                    "&customerLastName=${ipgPayment.customerLastName}" +
+                    "&customerEmail=${ipgPayment.customerEmail}" +
+                    "&customerMobilePhone=${ipgPayment.customerMobilePhone}" +
+
+                    "&billingAddressStreet=${ipgPayment.billingAddressCity}" +
+                    "&billingAddressCity=${ipgPayment.billingAddressCity}" +
+                    "&billingAddressCountry=${ipgPayment.billingAddressCountry}" +
+                    "&billingAddressPostcodeZip=${ipgPayment.billingAddressPostcodeZip}" +
+                    "&billingAddressStateProvince=${ipgPayment.billingAddressStateProvince}" +
+
+                    "&shippingContactFirstName=${ipgPayment.shippingContactFirstName}" +
+                    "&shippingContactLastName=${ipgPayment.shippingContactLastName}" +
+                    "&shippingContactEmail=${ipgPayment.shippingContactEmail}" +
+                    "&shippingContactMobilePhone=${ipgPayment.shippingContactMobilePhone}" +
+                    "&shippingAddressStreet=${ipgPayment.shippingAddressStreet}" +
+                    "&shippingAddressCity=${ipgPayment.shippingAddressCity}" +
+                    "&shippingAddressCountry=${ipgPayment.shippingAddressCountry}" +
+                    "&shippingAddressPostcodeZip=${ipgPayment.shippingAddressPostcodeZip}" +
+                    "&shippingAddressStateProvince=${ipgPayment.shippingAddressStateProvince}"
+        }
+
+        return null
+    }
+
+    fun getStatus(context: Context, uid: String, resultIndicator: String, onResponse: ((data: String) -> Unit)) {
+        getStatus(context, uid, resultIndicator, object : IPGStatusListener {
+            override fun onResponse(data: String) {
+                onResponse(data)
+            }
+        })
+    }
+
+    fun getStatus(context: Context, uid: String, resultIndicator: String, listener: IPGStatusListener) {
+
+        val serverUrl = "${getServerUrl()}/${environment.name.lowercase()}/status-view?uid=$uid&resultIndicator=$resultIndicator&responseType=json"
+
+        APITask.from(context).sendGET(200, serverUrl, null, object : APITask.Listener {
+
+            override fun onSuccess(pid: Int, status: Int, headers: Map<String, String>, body: String) {
+                listener.onResponse(body)
+            }
+
+            override fun onFailed(pid: Int, ex: Exception) {
+                listener.onResponse(ex.message ?: ex.toString())
+            }
+        })
+
     }
 }

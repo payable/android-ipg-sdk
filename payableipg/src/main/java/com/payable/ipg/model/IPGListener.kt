@@ -2,7 +2,7 @@ package com.payable.ipg.model
 
 interface IPGListener {
 
-    fun onPaymentPageLoaded()
+    fun onPaymentPageLoaded(uid: String)
     fun onPaymentStarted()
     fun onPaymentCancelled()
     fun onPaymentError(data: String)

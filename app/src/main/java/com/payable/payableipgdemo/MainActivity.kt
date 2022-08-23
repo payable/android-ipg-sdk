@@ -1,34 +1,105 @@
 package com.payable.payableipgdemo
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import com.payable.ipg.model.IPGListener
-import com.payable.ipg.model.IPGPayment
-import com.payable.ipg.model.IPGUIConfig
 import com.payable.ipg.PAYableIPGClient
+import com.payable.ipg.model.*
 import com.payable.payableipgdemo.databinding.ActivityMainBinding
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    private var payableIPGClient: PAYableIPGClient? = null;
+    private var uid: String? = null
+    private var resultIndicator: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        val payableIPGClient = PAYableIPGClient(
-            "A748BFC24F8F6C61",
-            "A8907A75E36A210DE82CDB65430B2E1F",
-            "https://www.payable.lk",
-            "https://bizenglish.adaderana.lk/wp-content/uploads/NOLIMIT-logo.jpg",
-            PAYableIPGClient.Environment.PRODUCTION,
-            true
-        )
+        binding.btnSandbox.setOnClickListener {
+            startPayment(PAYableIPGClient.Environment.SANDBOX)
+        }
 
-        binding.btnStart.setOnClickListener {
+        binding.btnProduction.setOnClickListener {
+            startPayment(PAYableIPGClient.Environment.PRODUCTION)
+        }
+
+        binding.btnSessionId.setOnClickListener {
+            if (payableIPGClient != null && uid != null) {
+                startPayment(ipgEnvironment = payableIPGClient!!.environment, uid = uid!!)
+            }
+        }
+
+        binding.btnStatus.setOnClickListener {
+            if (payableIPGClient != null && uid != null && resultIndicator != null) {
+                payableIPGClient!!.getStatus(this, uid = uid!!, resultIndicator = resultIndicator!!) {
+                    updateUI("onStatus")
+                    Toast.makeText(applicationContext, "onStatus: $it", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    private fun startPayment(ipgEnvironment: PAYableIPGClient.Environment, uid: String? = null) {
+
+        payableIPGClient = if (ipgEnvironment == PAYableIPGClient.Environment.PRODUCTION) {
+            PAYableIPGClient(
+                "2C60AC94E06CFC1B",
+                "DC9420BC7EBC2E38A19A931BB8B099EB",
+                "https://ipgmobileteam.payable.lk",
+                "https://i.imgur.com/l21F5us.png",
+                PAYableIPGClient.Environment.PRODUCTION,
+                true
+            )
+        } else {
+            PAYableIPGClient(
+                "A75BCD8EF30E529A",
+                "B8727C74D29E210F9A297B65690C0140",
+                "https://www.sandboxmerdev.payable.lk",
+                "https://i.imgur.com/l21F5us.png",
+                PAYableIPGClient.Environment.SANDBOX,
+                true
+            )
+        }
+
+        val ipgListener = object : IPGListener {
+
+            override fun onPaymentPageLoaded(uid: String) {
+                updateUI("onPaymentPageLoaded")
+                Toast.makeText(applicationContext, "onPaymentPageLoaded: $uid", Toast.LENGTH_LONG).show()
+                this@MainActivity.uid = uid
+            }
+
+            override fun onPaymentStarted() {
+                updateUI("onPaymentStarted")
+                Toast.makeText(applicationContext, "onPaymentStarted", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onPaymentCancelled() {
+                updateUI("onPaymentCancelled")
+                Toast.makeText(applicationContext, "onPaymentCancelled", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onPaymentError(data: String) {
+                updateUI("onPaymentError: $data")
+                Toast.makeText(applicationContext, "onPaymentError: $data", Toast.LENGTH_LONG).show()
+            }
+
+            override fun onPaymentCompleted(data: String) {
+                updateUI("onPaymentCompleted: $data")
+                Toast.makeText(applicationContext, "onPaymentCompleted: $data", Toast.LENGTH_LONG).show()
+                this@MainActivity.resultIndicator = JSONObject(data).getString("resultIndicator")
+            }
+        }
+
+        if (uid == null) {
 
             val ipgPayment = IPGPayment(
                 binding.editAmount.text.toString().toDouble(),
@@ -42,7 +113,7 @@ class MainActivity : AppCompatActivity() {
                 "Dehiwala",
                 "LK",
                 "10350",
-                "Western",
+                "Western", // optional
                 "Aslam",
                 "Anver",
                 "aslam@payable.lk",
@@ -53,36 +124,14 @@ class MainActivity : AppCompatActivity() {
                 "10350",
                 "Western",
                 "https://us-central1-payable-mobile.cloudfunctions.net/ipg/request-test",
-                IPGUIConfig(2, 120)
+                IPGUIConfig(2, 10)
             )
 
-            payableIPGClient.startPayment(this, ipgPayment, object : IPGListener {
+            payableIPGClient!!.startPayment(this, ipgPayment, ipgListener)
 
-                override fun onPaymentPageLoaded() {
-                    updateUI("onPaymentPageLoaded")
-                    Toast.makeText(applicationContext, "onPaymentPageLoaded", Toast.LENGTH_LONG).show()
-                }
+        } else {
 
-                override fun onPaymentStarted() {
-                    updateUI("onPaymentStarted")
-                    Toast.makeText(applicationContext, "onPaymentStarted", Toast.LENGTH_LONG).show()
-                }
-
-                override fun onPaymentCancelled() {
-                    updateUI("onPaymentCancelled")
-                    Toast.makeText(applicationContext, "onPaymentCancelled", Toast.LENGTH_LONG).show()
-                }
-
-                override fun onPaymentError(data: String) {
-                    updateUI("onPaymentError: $data")
-                    Toast.makeText(applicationContext, "onPaymentError: $data", Toast.LENGTH_LONG).show()
-                }
-
-                override fun onPaymentCompleted(data: String) {
-                    updateUI("onPaymentCompleted: $data")
-                    Toast.makeText(applicationContext, "onPaymentCompleted: $data", Toast.LENGTH_LONG).show()
-                }
-            })
+            payableIPGClient!!.startPayment(this, uid, ipgListener)
         }
     }
 

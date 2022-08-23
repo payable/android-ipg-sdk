@@ -8,38 +8,65 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-        <Button
-            android:id="@+id/btnStart"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="start payment"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <EditText
             android:id="@+id/editAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
             android:ems="10"
             android:hint="Amount"
             android:inputType="numberDecimal"
-            android:text="100.00"
-            app:layout_constraintBottom_toTopOf="@+id/btnStart"
+            android:text="2.00"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
+            android:id="@+id/btnSandbox"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Sandbox"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/editAmount" />
+
+        <Button
+            android:id="@+id/btnProduction"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Production"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSandbox" />
+
+        <Button
+            android:id="@+id/btnSessionId"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Session ID"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnProduction" />
+
+        <Button
+            android:id="@+id/btnStatus"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="Status"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnSessionId" />
 
         <TextView
             android:id="@+id/textViewResponse"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="10dp"
             android:paddingHorizontal="5dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnStart" />
+            android:text="Response"
+            app:layout_constraintTop_toBottomOf="@+id/btnStatus" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
