@@ -34,8 +34,11 @@ implementation 'com.github.payable:android-ipg-sdk:1.0.4'
 
 <b>1.</b> Import PAYable IPG SDK package.
 
-```dart
-import 'package:payable_ipg/payable_ipg.dart';
+```java
+import com.payable.ipg.PAYableIPGClient;
+import com.payable.ipg.model.IPGListener;
+import com.payable.ipg.model.IPGPayment;
+import com.payable.ipg.model.IPGStatusListener;
 ```
 
 <b>2.</b> Create PAYable IPG client with `PAYableIPGClient`.
