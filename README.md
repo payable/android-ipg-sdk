@@ -38,7 +38,7 @@ implementation 'com.github.payable:android-ipg-sdk:1.0.4'
 import 'package:payable_ipg/payable_ipg.dart';
 ```
 
-<b>1.</b> Create PAYable IPG client with `PAYableIPGClient`.
+<b>2.</b> Create PAYable IPG client with `PAYableIPGClient`.
 
 ```java 
 PAYableIPGClient ipgClient = new PAYableIPGClient(
@@ -51,7 +51,7 @@ PAYableIPGClient ipgClient = new PAYableIPGClient(
 );
 ```
 
-<b>2.</b> Prepare `IPGPayment` to initiate the payment.
+<b>3.</b> Prepare `IPGPayment` to initiate the payment.
 
 ```java
 IPGPayment ipgPayment = new IPGPayment(
@@ -67,7 +67,11 @@ IPGPayment ipgPayment = new IPGPayment(
     billingAddressCountry,
     billingAddressPostcodeZip
 );
+```
 
+<b>4.</b> Call `startPayment` method from `ipgClient` to perform the payment.
+
+```java
 ipgClient.startPayment(activity, ipgPayment, new IPGListener() {
 
     @Override
