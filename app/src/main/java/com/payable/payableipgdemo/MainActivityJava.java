@@ -1,29 +1,26 @@
 package com.payable.payableipgdemo;
 
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.databinding.DataBindingUtil;
 
 import com.payable.ipg.PAYableIPGClient;
 import com.payable.ipg.model.IPGListener;
 import com.payable.ipg.model.IPGPayment;
 import com.payable.ipg.model.IPGStatusListener;
-import com.payable.payableipgdemo.databinding.ActivityMainJavaBinding;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivityJava extends AppCompatActivity {
 
-    private ActivityMainJavaBinding binding;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main_java);
+        setContentView(R.layout.activity_main_java);
 
         PAYableIPGClient ipgClient = new PAYableIPGClient(
                 "A75BCD8EF30E529A",
@@ -94,7 +91,8 @@ public class MainActivityJava extends AppCompatActivity {
     }
 
     private void updateUI(String message) {
-        binding.textViewResponse.setText(message + "\n" + binding.textViewResponse.getText().toString());
+        TextView textViewResponse = findViewById(R.id.textViewResponse);
+        textViewResponse.setText(message + "\n" + textViewResponse.getText().toString());
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 }

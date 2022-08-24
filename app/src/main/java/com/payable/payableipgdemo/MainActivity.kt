@@ -1,18 +1,16 @@
 package com.payable.payableipgdemo
 
 import android.os.Bundle
-import android.util.Log
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
 import com.payable.ipg.PAYableIPGClient
 import com.payable.ipg.model.*
-import com.payable.payableipgdemo.databinding.ActivityMainBinding
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityMainBinding
 
     private var payableIPGClient: PAYableIPGClient? = null;
     private var uid: String? = null
@@ -21,26 +19,26 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        setContentView(R.layout.activity_main)
 
-        binding.btnSandbox.setOnClickListener {
+        findViewById<Button>(R.id.btnSandbox).setOnClickListener {
             startPayment(PAYableIPGClient.Environment.SANDBOX)
         }
 
-        binding.btnProduction.setOnClickListener {
+        findViewById<Button>(R.id.btnProduction).setOnClickListener {
             startPayment(PAYableIPGClient.Environment.PRODUCTION)
         }
 
-        binding.btnSessionId.setOnClickListener {
+        findViewById<Button>(R.id.btnSessionId).setOnClickListener {
             if (payableIPGClient != null && uid != null) {
                 startPayment(ipgEnvironment = payableIPGClient!!.environment, uid = uid!!)
             }
         }
 
-        binding.btnStatus.setOnClickListener {
+        findViewById<Button>(R.id.btnStatus).setOnClickListener {
             if (payableIPGClient != null && uid != null && resultIndicator != null) {
                 payableIPGClient!!.getStatus(this, uid = uid!!, resultIndicator = resultIndicator!!) {
-                    updateUI("onStatus")
+                    updateUI("onStatus: $it")
                 }
             }
         }
@@ -96,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         if (uid == null) {
 
             val ipgPayment = IPGPayment(
-                binding.editAmount.text.toString().toDouble(),
+                findViewById<EditText>(R.id.editAmount).text.toString().toDouble(),
                 "LKR",
                 "Netflix",
                 "Aslam",
@@ -130,7 +128,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(message: String) {
-        binding.textViewResponse.text = "$message\n${binding.textViewResponse.text}"
+        val textViewResponse: TextView = findViewById(R.id.textViewResponse)
+        textViewResponse.text = "$message\n${textViewResponse.text}"
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }

@@ -11,7 +11,7 @@ PAYable IPG SDK - [android-ipg-sdk.payable.lk](https://android-ipg-sdk.payable.l
 
 ### Initialization
 
-1. Add the below repository into your project level `build.gradle` file.
+1. Add the below repository into your project level `settings.gradle` or `build.gradle` file.
 
 ```gradle
 allprojects {

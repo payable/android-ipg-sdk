@@ -2,7 +2,6 @@ package com.payable.ipg.ui
 
 import android.app.Dialog
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -15,28 +14,35 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import com.payable.ipg.PAYableIPGClient
 import com.payable.ipg.R
-import com.payable.ipg.databinding.FragmentIpgBinding
 import org.json.JSONException
 import org.json.JSONObject
 
 internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
 
-    private lateinit var binding: FragmentIpgBinding
+    private lateinit var fragmentInflater: LayoutInflater
+    private lateinit var fragmentView: View
+    private lateinit var webView: WebView
+    private lateinit var buttonLayout: LinearLayout
+    private lateinit var progressLayout: LinearLayout
+    private lateinit var buttonClose: ImageButton
+    private lateinit var buttonReload: ImageButton
+
     private var urlBeforeError = ""
 
     val closeHandler = Handler(Looper.getMainLooper())
-    val closeRun = Runnable { binding.buttonClose.performClick() }
+    val closeRun = Runnable { buttonClose.performClick() }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         val dialog = Dialog(requireContext(), R.style.DialogSlideAnim)
-        dialog.setContentView(FragmentIpgBinding.inflate(layoutInflater).root)
+        dialog.setContentView(R.layout.fragment_ipg)
         dialog.window!!.setGravity(Gravity.BOTTOM)
         dialog.window!!.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.window!!.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
@@ -46,25 +52,26 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
 
+        fragmentInflater = layoutInflater
+        fragmentView = inflater.inflate(R.layout.fragment_ipg, container, false)
+        webView = fragmentView.findViewById(R.id.webView)
+        buttonLayout = fragmentView.findViewById(R.id.button_layout)
+        progressLayout = fragmentView.findViewById(R.id.progress_layout)
+        buttonClose = fragmentView.findViewById(R.id.button_close)
+        buttonReload = fragmentView.findViewById(R.id.button_reload)
+
         dialog?.apply {
             setCancelable(false)
             setCanceledOnTouchOutside(false)
         }
 
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_ipg, container, false)
-        binding.buttonReload.visibility = View.GONE
+         buttonReload.visibility = View.GONE
+         buttonClose.setOnClickListener { finishView() }
+         buttonReload.setOnClickListener { reloadView() }
 
-        binding.buttonClose.setOnClickListener { finishView() }
-        binding.buttonReload.setOnClickListener { reloadView() }
+        webView.settings.javaScriptEnabled = true
 
-        /*progressDialog = ProgressDialog(activity).apply {
-            setMessage("Please Wait....")
-            setCancelable(false)
-        }*/
-
-        binding.webView.settings.javaScriptEnabled = true
-
-        binding.webView.webViewClient = object : WebViewClient() {
+        webView.webViewClient = object : WebViewClient() {
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                 return false
@@ -76,7 +83,7 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
             }
         }
 
-        binding.webView.webChromeClient = object : WebChromeClient() {
+        webView.webChromeClient = object : WebChromeClient() {
 
             override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
                 console("onConsoleMessage: " + consoleMessage.message())
@@ -86,11 +93,11 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
             override fun onProgressChanged(view: WebView?, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
                 if (newProgress == 100) {
-                    binding.buttonLayout.visibility = View.VISIBLE
-                    binding.progressLayout.visibility = View.GONE
-                } else if (!binding.progressLayout.isVisible) {
-                    binding.buttonLayout.visibility = View.GONE
-                    binding.progressLayout.visibility = View.VISIBLE
+                    buttonLayout.visibility = View.VISIBLE
+                    progressLayout.visibility = View.GONE
+                } else if (!progressLayout.isVisible) {
+                    buttonLayout.visibility = View.GONE
+                    progressLayout.visibility = View.VISIBLE
                 }
             }
         }
@@ -135,8 +142,8 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
                 Handler(Looper.getMainLooper()).post {
 
                     // binding.buttonReload.visibility = View.GONE
-                    binding.buttonClose.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_check_24))
-                    binding.buttonClose.setOnClickListener { finishView(JSONObject(data).toString()) }
+                    buttonClose.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_baseline_check_24))
+                    buttonClose.setOnClickListener { finishView(JSONObject(data).toString()) }
 
                     ipgClient.ipgPayment?.let {
                         closeHandler.removeCallbacks(closeRun)
@@ -146,22 +153,22 @@ internal class IPGFragment(val ipgClient: PAYableIPGClient) : DialogFragment() {
             }
         }
 
-        binding.webView.addJavascriptInterface(WebAppInterface(), "PAYable")
+        webView.addJavascriptInterface(WebAppInterface(), "PAYable")
 
         val paymentURL = ipgClient.generatePaymentURL(ipgClient.ipgPayment, ipgClient.uid)
 
         if (paymentURL != null) {
-            binding.webView.safeLoadUrl(paymentURL)
+            webView.safeLoadUrl(paymentURL)
         }
 
-        return binding.root
+        return fragmentView
     }
 
     fun reloadView() {
-        if (binding.webView.isErrorPage()) {
-            binding.webView.safeLoadUrl(urlBeforeError)
+        if (webView.isErrorPage()) {
+            webView.safeLoadUrl(urlBeforeError)
         } else {
-            binding.webView.reload()
+            webView.reload()
         }
     }
 
