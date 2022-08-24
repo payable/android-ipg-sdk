@@ -25,7 +25,7 @@ allprojects {
 2. Add the below dependency into your module level `build.gradle` file.
 
 ```gradle
-implementation 'com.github.payable:android-ipg-sdk:1.0.4'
+implementation 'com.github.payable:android-ipg-sdk:1.0.5'
 ```
 
 <hr>
